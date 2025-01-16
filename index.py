@@ -28,10 +28,6 @@ clock = pygame.time.Clock()
 # Font
 font_style = pygame.font.SysFont(None, 50)
 
-# Load apple image
-apple_image = pygame.image.load('apple.png')
-apple_image = pygame.transform.scale(apple_image, (snake_block, snake_block))
-
 def message(msg, color):
     mesg = font_style.render(msg, True, color)
     win.blit(mesg, [width / 6, height / 3])
@@ -49,8 +45,13 @@ def gameLoop():
     snake_list = []
     length_of_snake = 1
 
+    # Initial position of the snake
+    snake_list.append([x1, y1])
+
     foodx = round(random.randrange(0, width - snake_block) / 10.0) * 10.0
     foody = round(random.randrange(0, height - snake_block) / 10.0) * 10.0
+
+    wall_thickness = 10
 
     while not game_over:
 
@@ -89,22 +90,26 @@ def gameLoop():
         x1 += x1_change
         y1 += y1_change
         win.fill(black)
+        
+        # Draw the walls
+        pygame.draw.rect(win, green, [0, 0, width, wall_thickness])  # Top wall
+        pygame.draw.rect(win, green, [0, 0, wall_thickness, height])  # Left wall
+        pygame.draw.rect(win, green, [0, height - wall_thickness, width, wall_thickness])  # Bottom wall
+        pygame.draw.rect(win, green, [width - wall_thickness, 0, wall_thickness, height])  # Right wall
+
+        # Draw the fruit as a circle
         pygame.draw.circle(win, red, (foodx + snake_block // 2, foody + snake_block // 2), snake_block // 2)
-        snake_head = []
-        snake_head.append(x1)
-        snake_head.append(y1)
-        snake_list.append(snake_head)
-        if len(snake_list) > length_of_snake:
-            del snake_list[0]
-
-        for x in snake_list[:-1]:
-            if x == snake_head:
-                game_close = True
-
+        
+        # Draw the snake in white
         for x in snake_list:
-            pygame.draw.rect(win, green, [x[0], x[1], snake_block, snake_block])
+            pygame.draw.rect(win, white, [x[0], x[1], snake_block, snake_block])
 
         pygame.display.update()
+
+        # Check collision with walls
+        if (x1 < wall_thickness or x1 >= width - wall_thickness or
+            y1 < wall_thickness or y1 >= height - wall_thickness):
+            game_close = True
 
         if x1 == foodx and y1 == foody:
             foodx = round(random.randrange(0, width - snake_block) / 10.0) * 10.0
@@ -112,6 +117,8 @@ def gameLoop():
             length_of_snake += 1
 
         clock.tick(snake_speed)
+
+        print("Snake position:", snake_list)
 
     pygame.quit()
     quit()
